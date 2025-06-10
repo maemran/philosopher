@@ -70,6 +70,19 @@ int forks_init(t_data *data)
     return(SUCCESS);
 }
 
+int    cuurent_time(void)
+{
+    struct timeval	time;
+    int current_time;
+
+    if (gettimeofday(&time, NULL) == -1)
+    {
+        write(2, "gettimeofday() error\n", 22);
+        return (FAILURE);
+    }
+    current_time = (time.tv_sec * 1000) + (time.tv_usec / 1000);
+    return (current_time);
+}
 int    data_init(t_data *data, char **argv, int argc)
 {
     data->philos_num = ft_atoi(argv[1]);
@@ -90,6 +103,7 @@ int    data_init(t_data *data, char **argv, int argc)
     if (forks_init(data))
         return (FAILURE);
     pthread_mutex_init(&data->std_out, NULL);
+    pthread_mutex_init(&data->start_time_mutex, NULL);
     return(SUCCESS);
 }
 
@@ -105,9 +119,120 @@ t_philos    *philos_init(t_data  *data)
     while (i < data->philos_num)
     {
         philos[i].id = i + 1;
+        philos[i].left_fork = i;
+        philos[i].right_fork = (i + 1) % data->philos_num;
         i++;
     }
     return (philos);
+}
+
+int take_forks(t_philos *philo, t_data *data)
+{
+    pthread_mutex_lock(&data->forks[philo->left_fork]);
+    data->fork_num[philo->left_fork] = 1;
+    pthread_mutex_lock(&data->forks[philo->right_fork]);
+    data->fork_num[philo->right_fork] = 1;
+    pthread_mutex_lock(&data->std_out);
+    printf("\033[32m[%d] Philosopher %d has taken forks %d\033[0m\n", 
+        cuurent_time() - data->start_time ,philo->id, philo->left_fork + 1);
+    printf("\033[32m[%d] Philosopher %d has taken forks %d\033[0m\n",
+        cuurent_time() - data->start_time, philo->id, philo->right_fork + 1);
+    pthread_mutex_unlock(&data->std_out);
+    return (SUCCESS);
+}
+
+int release_forks(t_philos *philo, t_data *data)
+{
+    data->fork_num[philo->left_fork] = 0;
+    pthread_mutex_unlock(&data->forks[philo->left_fork]);
+    data->fork_num[philo->right_fork] = 0;
+    pthread_mutex_unlock(&data->forks[philo->right_fork]);
+    return (SUCCESS);
+}
+
+int eating(t_philos *philo, t_data *data)
+{
+    pthread_mutex_lock(&data->std_out);
+    printf("\033[34m[%d] Philosopher %d is eating.\033[0m\n",
+        cuurent_time() - data->start_time, philo->id);
+    pthread_mutex_unlock(&data->std_out);
+    usleep(data->time_to_eat * 1000);
+    pthread_mutex_lock(&data->start_time_mutex);///
+    data->last_meal = cuurent_time();
+    pthread_mutex_unlock(&data->start_time_mutex);///
+    release_forks(philo, data);
+    return (SUCCESS);
+}
+
+int sleeping(t_philos *philo, t_data *data)
+{
+    pthread_mutex_lock(&data->std_out);
+    printf("\033[35m[%d] Philosopher %d is sleeping.\033[0m\n",
+        cuurent_time() - data->start_time, philo->id);
+    pthread_mutex_unlock(&data->std_out);
+    usleep(data->time_to_sleep * 1000);
+    return (SUCCESS);
+}
+
+int thinking(t_philos *philo, t_data *data)
+{
+    pthread_mutex_lock(&data->std_out);
+    printf("\033[36m[%d] Philosopher %d is thinking.\033[0m\n",
+        cuurent_time() - data->start_time, philo->id);
+    pthread_mutex_unlock(&data->std_out);
+    usleep(1000);
+    return (SUCCESS);
+}
+
+
+void    *routine(void *arg)
+{
+    t_philos *philo;
+    t_data   *data;
+
+    philo = (t_philos *)arg;
+    data = philo->data;
+    if (data->start_time == FAILURE)
+        return (NULL);
+    if (philo->id % 2 != 0)
+        take_forks(philo, data);
+    while (1)
+    {
+        if (data->fork_num[philo->left_fork]
+            && data->fork_num[philo->right_fork])
+        {
+            eating(philo, data);
+            sleeping(philo, data);
+        }
+        else
+            thinking(philo, data);
+        take_forks(philo, data);//
+    }
+    return (NULL);
+}
+
+int    create_threads(t_philos *philo, t_data *data)
+{
+    int i;
+
+    i = 0;
+    data->threads = malloc(sizeof(pthread_t) * data->philos_num);
+    if (!data->threads)
+        return (FAILURE);
+    data->start_time = cuurent_time();
+    while (i < data->philos_num)
+    {
+        philo[i].data = data;
+        pthread_create(&data->threads[i], NULL, routine, &philo[i]);
+        i++;
+    }
+    i = 0;
+    while (i < data->philos_num)
+    {
+        pthread_join(data->threads[i], NULL);
+        i++;
+    }
+    return (SUCCESS);
 }
 
 int main(int argc, char **argv)// philo_num    td    te   ts  op
@@ -126,11 +251,16 @@ int main(int argc, char **argv)// philo_num    td    te   ts  op
     if (data_init(data, argv, argc))
         exit(FAILURE);
     philo = philos_init(data);
-    int i = 0;
+    if (!philo)
+        return (FAILURE);
+    create_threads(philo, data);
     
-    while (i < data->philos_num)
-    {
-        printf("philo_id: %i\n", philo[i].id);
-        i++;
-    }
+    // int i = 0;
+    
+    // while (i < data->philos_num)
+    // {
+    //     printf("philo_id: %i\n", philo[i].id);
+    //     i++;
+    // }
+
 }

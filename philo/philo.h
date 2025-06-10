@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 typedef struct s_data
 {
@@ -37,21 +39,23 @@ typedef struct s_data
     int time_to_die;
     int time_to_eat;
     int time_to_sleep;
+    int start_time;
     int num_of_eat;
     int *fork_num;
+    int last_meal;
+    pthread_t *threads;
     pthread_mutex_t *forks;
     pthread_mutex_t std_out;
-    pthread_mutex_t id;
+    pthread_mutex_t start_time_mutex;
 }   t_data;
 
 typedef struct s_philos
 {
     int id;
+    int left_fork;
+    int right_fork;
     t_data  *data;
 }   t_philos;
-
-
-
 
 
 #endif 
