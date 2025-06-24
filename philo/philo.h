@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:34 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/09 18:55:20 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/24 16:41:27 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,12 +41,12 @@ typedef struct s_data
     int time_to_sleep;
     int start_time;
     int num_of_eat;
-    int *fork_num;
     int last_meal;
+    int is_dead;
     pthread_t *threads;
     pthread_mutex_t *forks;
     pthread_mutex_t std_out;
-    pthread_mutex_t start_time_mutex;
+    pthread_mutex_t death;
 }   t_data;
 
 typedef struct s_philos

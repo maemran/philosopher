@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:29 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/09 19:50:06 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/24 17:02:14 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,15 +55,11 @@ int forks_init(t_data *data)
     int i;
 
     i = 0;
-    data->fork_num = malloc(sizeof(int) * data->philos_num);
-    if (!data->fork_num)
-        return (FAILURE);
     data->forks = malloc(sizeof(pthread_mutex_t) * data->philos_num);
     if (!data->forks)
         return (FAILURE);
     while(i < data->philos_num)
     {
-        data->fork_num[i] = 0;
         pthread_mutex_init(&data->forks[i], NULL);
         i++;
     }
@@ -100,10 +96,11 @@ int    data_init(t_data *data, char **argv, int argc)
         printf("\033[31mIts a non numric value.\n\033[0m");
         return(FAILURE);
     }
+    data->is_dead = 1;
     if (forks_init(data))
         return (FAILURE);
     pthread_mutex_init(&data->std_out, NULL);
-    pthread_mutex_init(&data->start_time_mutex, NULL);
+    pthread_mutex_init(&data->death, NULL);
     return(SUCCESS);
 }
 
@@ -126,16 +123,23 @@ t_philos    *philos_init(t_data  *data)
     return (philos);
 }
 
+
 int take_forks(t_philos *philo, t_data *data)
 {
-    pthread_mutex_lock(&data->forks[philo->left_fork]);
-    data->fork_num[philo->left_fork] = 1;
-    pthread_mutex_lock(&data->forks[philo->right_fork]);
-    data->fork_num[philo->right_fork] = 1;
+    if (philo->id % 2 != 0)
+    {
+        pthread_mutex_lock(&data->forks[philo->left_fork]);
+        pthread_mutex_lock(&data->forks[philo->right_fork]);
+    }
+    else
+    {
+        pthread_mutex_lock(&data->forks[philo->right_fork]);
+        pthread_mutex_lock(&data->forks[philo->left_fork]);
+    }
     pthread_mutex_lock(&data->std_out);
-    printf("\033[32m[%d] Philosopher %d has taken forks %d\033[0m\n", 
+    printf("\033[32m[%d] Philosopher %d has taken forks %d.\033[0m\n", 
         cuurent_time() - data->start_time ,philo->id, philo->left_fork + 1);
-    printf("\033[32m[%d] Philosopher %d has taken forks %d\033[0m\n",
+    printf("\033[32m[%d] Philosopher %d has taken forks %d.\033[0m\n",
         cuurent_time() - data->start_time, philo->id, philo->right_fork + 1);
     pthread_mutex_unlock(&data->std_out);
     return (SUCCESS);
@@ -143,12 +147,48 @@ int take_forks(t_philos *philo, t_data *data)
 
 int release_forks(t_philos *philo, t_data *data)
 {
-    data->fork_num[philo->left_fork] = 0;
     pthread_mutex_unlock(&data->forks[philo->left_fork]);
-    data->fork_num[philo->right_fork] = 0;
     pthread_mutex_unlock(&data->forks[philo->right_fork]);
     return (SUCCESS);
 }
+
+int death_monitor(t_philos *philo, t_data *data, int time)
+{
+    pthread_mutex_lock(&data->std_out);
+    printf("%i,   %i\n", time , data->time_to_die);
+    usleep(1000);
+    pthread_mutex_unlock(&data->std_out);
+    if (time >= data->time_to_die)
+    {
+        pthread_mutex_lock(&data->std_out);
+        printf("\033[34m[%d] Philosopher %d is died.\033[0m\n",
+            time, philo->id);
+        pthread_mutex_unlock(&data->std_out);
+        return (FAILURE);
+    }
+    return (SUCCESS);
+}
+
+void precise_sleep(t_philos *philo, t_data *data, int ms)
+{
+    int start;
+    
+    start = cuurent_time();
+    while ((cuurent_time() - start) < ms)
+    {
+        if (death_monitor(philo, data, (cuurent_time() - start)))
+        {
+            pthread_mutex_lock(&data->death);
+            data->is_dead = 0;
+            pthread_mutex_unlock(&data->death);
+        }
+        usleep(100);
+    }
+    // pthread_mutex_lock(&data->std_out);
+    // printf("%i,   %i\n", (cuurent_time() - start), data->time_to_die);
+    // pthread_mutex_unlock(&data->std_out);
+}
+
 
 int eating(t_philos *philo, t_data *data)
 {
@@ -156,11 +196,11 @@ int eating(t_philos *philo, t_data *data)
     printf("\033[34m[%d] Philosopher %d is eating.\033[0m\n",
         cuurent_time() - data->start_time, philo->id);
     pthread_mutex_unlock(&data->std_out);
-    usleep(data->time_to_eat * 1000);
-    pthread_mutex_lock(&data->start_time_mutex);///
-    data->last_meal = cuurent_time();
-    pthread_mutex_unlock(&data->start_time_mutex);///
+    precise_sleep(philo, data, data->time_to_eat);
     release_forks(philo, data);
+    // pthread_mutex_lock(&data->start_time_mutex);
+    // data->last_meal = cuurent_time();
+    // pthread_mutex_unlock(&data->start_time_mutex);
     return (SUCCESS);
 }
 
@@ -170,7 +210,7 @@ int sleeping(t_philos *philo, t_data *data)
     printf("\033[35m[%d] Philosopher %d is sleeping.\033[0m\n",
         cuurent_time() - data->start_time, philo->id);
     pthread_mutex_unlock(&data->std_out);
-    usleep(data->time_to_sleep * 1000);
+    precise_sleep(philo, data, data->time_to_sleep);
     return (SUCCESS);
 }
 
@@ -180,10 +220,8 @@ int thinking(t_philos *philo, t_data *data)
     printf("\033[36m[%d] Philosopher %d is thinking.\033[0m\n",
         cuurent_time() - data->start_time, philo->id);
     pthread_mutex_unlock(&data->std_out);
-    usleep(1000);
     return (SUCCESS);
 }
-
 
 void    *routine(void *arg)
 {
@@ -194,19 +232,14 @@ void    *routine(void *arg)
     data = philo->data;
     if (data->start_time == FAILURE)
         return (NULL);
-    if (philo->id % 2 != 0)
-        take_forks(philo, data);
-    while (1)
+    if (philo->id % 2 == 0)
+        usleep(100);
+    while (data->is_dead)
     {
-        if (data->fork_num[philo->left_fork]
-            && data->fork_num[philo->right_fork])
-        {
-            eating(philo, data);
-            sleeping(philo, data);
-        }
-        else
-            thinking(philo, data);
-        take_forks(philo, data);//
+        take_forks(philo, data);
+        eating(philo, data);
+        thinking(philo, data);
+        sleeping(philo, data);
     }
     return (NULL);
 }
@@ -249,7 +282,7 @@ int main(int argc, char **argv)// philo_num    td    te   ts  op
     if (!data)
         exit (FAILURE);
     if (data_init(data, argv, argc))
-        exit(FAILURE);
+        exit(FAILURE); 
     philo = philos_init(data);
     if (!philo)
         return (FAILURE);
