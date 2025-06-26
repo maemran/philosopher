@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:29 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/26 19:03:45 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/26 20:06:23 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,6 +151,68 @@ void    *monitor_routine(void *arg)
     }
     return (NULL);
 }
+
+void    *finish_eating(void *arg)
+{
+    t_philos *philo = (t_philos *)arg;
+    t_data   *data = philo->data;
+    int i;
+    int full_count;
+
+    if (data->num_of_eat == -2)
+        return (NULL); 
+
+    while (1)
+    {
+        full_count = 0;
+        i = 0;
+        while (i < data->philos_num)
+        {
+            if (philo[i].eating_num >= data->num_of_eat)
+                full_count++;
+            i++;
+        }
+        if (full_count == data->philos_num)// its   false 
+        {
+            pthread_mutex_lock(&data->eating);
+            data->they_all_ate = 0;
+            pthread_mutex_unlock(&data->eating);
+            return (NULL);
+        }
+        usleep(200);
+    }
+    return (NULL);
+}
+
+
+// void    *finish_eating(void *arg)
+// {
+//     t_philos *philo;
+//     t_data   *data;
+//     int i;
+//     int flag;
+
+//     philo = (t_philos *)arg;
+//     data = philo->data;
+//     // if (data->num_of_eat == -2)
+//     //     return ();
+//     while (1)
+//     {
+//         i = 0;
+//         flag = 0;
+//         while (i < data->philos_num)
+//         {
+//             if (philo[i].eating_num < data->num_of_eat)
+//                 flag++;
+//             i++;
+//         }
+//         if ((flag * data->philos_num) >= (data->num_of_eat * data->philos_num))
+//             data->they_all_ate = 0;
+//         usleep(100);
+//     }
+//     return (NULL);
+// }
+
 int    create_threads(t_philos *philo, t_data *data)
 {
     int i;
@@ -169,7 +231,9 @@ int    create_threads(t_philos *philo, t_data *data)
         i++;
     }
     pthread_create(&data->monitor_thread, NULL, monitor_routine, philo);
+    pthread_create(&data->eating_monitor, NULL, finish_eating, philo);
     pthread_join(data->monitor_thread, NULL);
+    pthread_join(data->eating_monitor, NULL);
     i = 0;
     while (i < data->philos_num)
     {

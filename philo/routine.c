@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:45:55 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/26 18:59:12 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/26 19:55:29 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ int eating(t_philos *philo, t_data *data)
         release_forks(philo, data);
         return (FAILURE);
     }
+    (philo->eating_num)++;
     release_forks(philo, data);
     return (SUCCESS);
 }
@@ -88,6 +89,13 @@ void    *routine(void *arg)
         return (NULL);
     while (1)
     {
+        pthread_mutex_lock(&data->eating);
+        if (!(data->they_all_ate) && data->num_of_eat != -2)
+        {
+            pthread_mutex_unlock(&data->eating);
+            break;
+        }
+        pthread_mutex_unlock(&data->eating);
         if (is_dead_flag_check(data))
             break ;
         if (take_forks(philo, data))

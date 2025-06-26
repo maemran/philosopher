@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:51:00 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/25 22:12:14 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/26 19:28:26 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,11 +84,13 @@ int    data_init(t_data *data, char **argv, int argc)
         return(FAILURE);
     }
     data->is_dead = 1;
+    data->they_all_ate = 1;
     if (forks_init(data))
         return (FAILURE);
     pthread_mutex_init(&data->std_out, NULL);
     pthread_mutex_init(&data->death, NULL);
     pthread_mutex_init(&data->last_meal_mutex, NULL);
+    pthread_mutex_init(&data->eating, NULL);
     return(SUCCESS);
 }
 
@@ -105,6 +107,7 @@ t_philos    *philos_init(t_data  *data)
     {
         philos[i].id = i + 1;
         philos[i].left_fork = i;
+        philos[i].eating_num = 0;
         philos[i].right_fork = (i + 1) % data->philos_num;
         i++;
     }
