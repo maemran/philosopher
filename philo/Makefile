@@ -1,8 +1,11 @@
 CC = cc
-CFLAGS = -Wall -Wextra -Werror 
+CFLAGS = -Wall -Wextra -Werror -g
 NAME = philo
 
-SRCS = philo.c
+SRCS = philo.c\
+	   routine.c\
+	   initialization.c\
+
 OBJS_DIR = OBJS
 OBJS = $(addprefix $(OBJS_DIR)/, $(SRCS:.c=.o))
 
