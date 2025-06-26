@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:34 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/25 22:12:21 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/26 18:57:33 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,10 +36,10 @@
 typedef struct s_data
 {
     int philos_num;
-    int time_to_die;
-    int time_to_eat;
-    int time_to_sleep;
-    int start_time;
+    long time_to_die;
+    long time_to_eat;
+    long time_to_sleep;
+    long start_time;
     int num_of_eat;
     int is_dead;
     pthread_t *threads;
@@ -56,17 +56,19 @@ typedef struct s_philos
     int id;
     int left_fork;
     int right_fork;
-    int last_meal;
+    long last_meal;
     t_data  *data;
 }   t_philos;
 
 
+int    permission_to_print(t_philos* philo);
 void    *routine(void *arg);
-int    current_time(void);
+long    current_time(void);
 int take_forks(t_philos *philo, t_data *data);
 int release_forks(t_philos *philo, t_data *data);
 t_philos    *philos_init(t_data  *data);
 int    data_init(t_data *data, char **argv, int argc);
-int precise_sleep(t_philos *philo, t_data *data, int ms);
+int precise_sleep(t_philos *philo, t_data *data, long ms);
+int is_dead_flag_check(t_data *data);
 
 #endif 

@@ -6,16 +6,16 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:29 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/26 00:01:04 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/26 19:03:45 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-int    current_time(void)
+long    current_time(void)
 {
     struct timeval	time;
-    int current_time;
+    long current_time;
 
     if (gettimeofday(&time, NULL) == -1)
     {
@@ -26,15 +26,8 @@ int    current_time(void)
     return (current_time);
 }
 
-int take_forks(t_philos *philo, t_data *data)
+void    swap_forks(t_philos *philo, t_data *data)
 {
-    // pthread_mutex_lock(&data->death);
-    // if (data->is_dead == 0)
-    // {
-    //     pthread_mutex_unlock(&data->death);
-    //     return (FAILURE);
-    // }
-    // pthread_mutex_unlock(&data->death);
     if (philo->id % 2 != 0)
     {
         pthread_mutex_lock(&data->forks[philo->left_fork]);
@@ -45,6 +38,32 @@ int take_forks(t_philos *philo, t_data *data)
         pthread_mutex_lock(&data->forks[philo->right_fork]);
         pthread_mutex_lock(&data->forks[philo->left_fork]);
     }
+}
+
+void    print_forks(t_philos *philo, t_data *data)
+{
+    pthread_mutex_lock(&data->std_out);
+    if (permission_to_print(philo))
+    {
+        printf("\033[32m[%ld] Philosopher %d has taken forks %d.\033[0m\n", 
+            current_time() - data->start_time ,philo->id, philo->left_fork + 1);
+        printf("\033[32m[%ld] Philosopher %d has taken forks %d.\033[0m\n",
+            current_time() - data->start_time, philo->id, philo->right_fork + 1);
+    }
+    pthread_mutex_unlock(&data->std_out);
+}
+
+int take_forks(t_philos *philo, t_data *data)
+{
+    pthread_mutex_lock(&data->death);
+    if (data->is_dead == 0
+        || ((current_time() - philo->last_meal) >= data->time_to_die))
+    {
+        pthread_mutex_unlock(&data->death);
+        return (FAILURE);
+    }
+    pthread_mutex_unlock(&data->death);
+    swap_forks(philo, data);
     pthread_mutex_lock(&data->death);
     if (data->is_dead == 0)
     {
@@ -53,12 +72,7 @@ int take_forks(t_philos *philo, t_data *data)
         return (FAILURE);
     }
     pthread_mutex_unlock(&data->death);
-    pthread_mutex_lock(&data->std_out);
-    printf("\033[32m[%d] Philosopher %d has taken forks %d.\033[0m\n", 
-        current_time() - data->start_time ,philo->id, philo->left_fork + 1);
-    printf("\033[32m[%d] Philosopher %d has taken forks %d.\033[0m\n",
-        current_time() - data->start_time, philo->id, philo->right_fork + 1);
-    pthread_mutex_unlock(&data->std_out);
+    print_forks(philo, data);
     return (SUCCESS);
 }
 
@@ -69,48 +83,48 @@ int release_forks(t_philos *philo, t_data *data)
     return (SUCCESS);
 }
 
-int death_monitor(t_philos *philo, t_data *data, int time)
+int precise_sleep(t_philos *philo, t_data *data, long ms)
 {
-    (void)philo;
-    // pthread_mutex_lock(&data->std_out);
-    // printf("%i,   %i\n", time , data->time_to_die);
-    // usleep(1000);
-    // pthread_mutex_unlock(&data->std_out);
-    if (time >= data->time_to_die)
-    {
-        // pthread_mutex_lock(&data->std_out);
-        // printf("\033[34m[%d] Philosopher %d is died.\033[0m\n",
-        //     time, philo->id);
-        // pthread_mutex_unlock(&data->std_out);
-        return (FAILURE);
-    }
-    return (SUCCESS);
-}
-
-int precise_sleep(t_philos *philo, t_data *data, int ms)
-{
-    int start;
+    long start;
     
     (void)philo;
     start = current_time();
     while ((current_time() - start) < ms)
     {
-        pthread_mutex_lock(&data->death);
-        if (data->is_dead == 0)
-        {
-            pthread_mutex_unlock(&data->death);
+        if (is_dead_flag_check(data))
             return (FAILURE);
-        }
-        pthread_mutex_unlock(&data->death);
         usleep(5);
     }
     return (SUCCESS);
 }
 
+int    permission_to_print(t_philos* philo)
+{
+    int res;
+    
+    pthread_mutex_lock(&philo->data->death);
+    res = philo->data->is_dead;
+    pthread_mutex_unlock(&philo->data->death);
+    return (res);
+}
+
+int    death_flag(t_philos* philo)
+{
+    pthread_mutex_lock(&philo->data->death);
+    if (!philo->data->is_dead)
+    {
+        pthread_mutex_unlock(&philo->data->death);
+        return (1);
+    }
+    philo->data->is_dead = 0;
+    pthread_mutex_unlock(&philo->data->death);
+    return (0);
+}
+
 void    *monitor_routine(void *arg)
 {
     t_philos *philo;
-    int time;
+    long time;
     int i;
 
     philo = (t_philos *)arg;
@@ -122,20 +136,18 @@ void    *monitor_routine(void *arg)
             pthread_mutex_lock(&philo->data->last_meal_mutex);
             time = current_time() - philo[i].last_meal;
             pthread_mutex_unlock(&philo->data->last_meal_mutex);
-            if (time >= philo->data->time_to_die)
+            if (time > philo->data->time_to_die)
             {
                 pthread_mutex_lock(&philo->data->std_out);
-                printf("\033[34m[%d] Philosopher %d is dead.\033[0m\n",
-                    current_time() - philo->data->start_time, philo[i].id);
+                if (!death_flag(philo))
+                    printf("\033[34m[%ld] Philosopher %d is dead.\033[0m\n",
+                        current_time() - philo->data->start_time, philo[i].id);
                 pthread_mutex_unlock(&philo->data->std_out);
-                pthread_mutex_lock(&philo->data->death);
-                philo->data->is_dead = 0;
-                pthread_mutex_unlock(&philo->data->death);
                 return (NULL);
             }
             i++;
         }
-        usleep(1000);   
+        usleep(20);   
     }
     return (NULL);
 }
@@ -157,13 +169,13 @@ int    create_threads(t_philos *philo, t_data *data)
         i++;
     }
     pthread_create(&data->monitor_thread, NULL, monitor_routine, philo);
+    pthread_join(data->monitor_thread, NULL);
     i = 0;
     while (i < data->philos_num)
     {
         pthread_join(data->threads[i], NULL);
         i++;
     }
-    pthread_join(data->monitor_thread, NULL);
     return (SUCCESS);
 }
 
