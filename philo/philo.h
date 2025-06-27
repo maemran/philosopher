@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:34 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/26 19:32:03 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/27 20:49:31 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,8 @@ typedef struct s_data
     pthread_mutex_t *forks;
     pthread_mutex_t std_out;
     pthread_mutex_t death;
-    pthread_mutex_t eating;
+    pthread_mutex_t eat_flag_mutex;
+    pthread_mutex_t eating_num_mutex;
     pthread_mutex_t last_meal_mutex;
 }   t_data;
 
@@ -73,5 +74,7 @@ t_philos    *philos_init(t_data  *data);
 int    data_init(t_data *data, char **argv, int argc);
 int precise_sleep(t_philos *philo, t_data *data, long ms);
 int is_dead_flag_check(t_data *data);
+int     meals_num_check(t_philos *philo, t_data *data);
+int is_stop_eating(t_philos *philo);
 
 #endif 
