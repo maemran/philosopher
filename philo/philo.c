@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:29 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 01:15:25 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/28 02:44:26 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ void    swap_forks(t_philos *philo, t_data *data)
 void    print_forks(t_philos *philo, t_data *data)
 {
     pthread_mutex_lock(&data->std_out);
-    if (permission_to_print(philo) && is_stop_eating(philo))
+    if (permission_to_print(philo))
     {
         printf("\033[32m[%ld] Philosopher %d has taken forks %d.\033[0m\n", 
             current_time() - data->start_time ,philo->id, philo->left_fork + 1);
@@ -57,7 +57,7 @@ int take_forks(t_philos *philo, t_data *data)
 {
     pthread_mutex_lock(&data->death);
     if (data->is_dead == 0
-        || ((current_time() - philo->last_meal) >= data->time_to_die) || !is_stop_eating(philo))
+        || ((current_time() - philo->last_meal) >= data->time_to_die))
     {
         pthread_mutex_unlock(&data->death);
         return (FAILURE);
@@ -143,8 +143,8 @@ void    *death_monitor(void *arg)
     while (1)
     {
         i = 0;
-        if (!is_stop_eating(philo))
-            return (NULL); 
+        // if (!is_stop_eating(philo))
+        //     return (NULL); 
         while (i < philo->data->philos_num)
         {
             pthread_mutex_lock(&philo->data->last_meal_mutex);
