@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 14:55:17 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 15:22:36 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/28 20:39:56 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,20 @@ long	current_time(void)
 	return (current_time);
 }
 
+int	is_digit(char *str)
+{
+	int		i;
+
+	i = 1;
+	while (str[i])
+	{
+		if (!(str[i] >= '0' && str[i] <= '9'))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
 int	args_check(char *str)
 {
 	int	length;
@@ -33,7 +47,7 @@ int	args_check(char *str)
 	length = 0;
 	while (str[length])
 	{
-		if (str[0] == '+' && str[1] != '\0')
+		if (str[0] == '+' && str[1] != '\0' && is_digit(str) == 1)
 		{
 			length++;
 			continue ;
@@ -42,6 +56,10 @@ int	args_check(char *str)
 			return (-1);
 		length++;
 	}
+	if (str[0] == '+')
+		length--;
+	if (length > 19)
+		return (-1);
 	return (0);
 }
 
@@ -62,15 +80,6 @@ int	ft_atoi(char *str)
 		length++;
 	}
 	return (res);
-}
-
-int	destroy_mutex(t_data *data)
-{
-	pthread_mutex_destroy(&data->meal_mutex);
-	pthread_mutex_destroy(&data->finish_mutex);
-	pthread_mutex_destroy(&data->std_out);
-	pthread_mutex_destroy(&data->death);
-	return (FAILURE);
 }
 
 int	precise_sleep(t_philos *philo, t_data *data, long ms)

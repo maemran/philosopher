@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:51:00 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 15:03:18 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/28 20:35:00 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,11 +74,12 @@ void	init_args(t_data *data, char **argv, int argc)
 int	data_init(t_data *data, char **argv, int argc)
 {
 	init_args(data, argv, argc);
-	if (data->philos_num == -1 || data->time_to_die == -1
-		|| data->time_to_eat == -1 || data->time_to_sleep == -1
-		|| data->num_of_eat == -1)
+	if (data->philos_num == -1 || data->philos_num == 0
+		|| data->time_to_die == -1 || data->time_to_eat == -1
+		|| data->time_to_sleep == -1 || data->num_of_eat == -1
+		|| data->num_of_eat == 0)
 	{
-		printf("\033[31mIts a non numrec value.\n\033[0m");
+		printf("\033[31mIts a non numeric value.\n\033[0m");
 		return (FAILURE);
 	}
 	data->is_dead = 1;
