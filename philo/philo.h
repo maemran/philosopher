@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:34 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 12:24:55 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:16:11 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,5 +76,18 @@ int    data_init(t_data *data, char **argv, int argc);
 int precise_sleep(t_philos *philo, t_data *data, long ms);
 int is_dead_flag_check(t_data *data);
 int    is_all_ate_enough(t_data *data);
+int args_check(char *str);
+int ft_atoi(char *str);
+int    destroy_mutex(t_data *data);
+void    meals_num_check(t_philos *philo, t_data *data);
+int    death_flag(t_philos* philo);
+void    swap_forks(t_philos *philo, t_data *data);
+int taking_fork_by_single_philo(t_philos *philo, t_data *data);
+void    print_forks(t_philos *philo, t_data *data);
+void print_death(t_philos *philo, int i);
+void    *death_monitor(void *arg);
+int creat_thread_fail(t_data *data);
+void thread_join(t_data *data);
+int    create_threads(t_philos *philo, t_data *data);
 
 #endif 

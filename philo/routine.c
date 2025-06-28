@@ -6,37 +6,11 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:45:55 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 14:26:51 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:08:48 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-int is_dead_flag_check(t_data *data)
-{
-    pthread_mutex_lock(&data->death);
-    if (data->is_dead == 0)
-    {
-        pthread_mutex_unlock(&data->death);
-        return (FAILURE);
-    }
-    pthread_mutex_unlock(&data->death);
-    return (SUCCESS);
-}
-
-void    meals_num_check(t_philos *philo, t_data *data)
-{
-    philo->meals_num++;
-    if (data->num_of_eat > 0 &&
-        philo->meals_num == data->num_of_eat)
-    {
-        pthread_mutex_lock(&data->finish_mutex);
-        data->philos_finished_meals++;
-        if (data->philos_finished_meals == data->philos_num)
-            data->all_ate_enough = 1;
-        pthread_mutex_unlock(&data->finish_mutex);
-    }
-}
 
 int eating_process(t_philos *philo, t_data *data)
 {
@@ -104,16 +78,6 @@ int thinking(t_philos *philo, t_data *data)
             current_time() - data->start_time, philo->id);
     pthread_mutex_unlock(&data->std_out);
     return (SUCCESS);
-}
-
-int    is_all_ate_enough(t_data *data)
-{
-    int result;
-    
-    pthread_mutex_lock(&data->finish_mutex);
-    result = data->all_ate_enough;
-    pthread_mutex_unlock(&data->finish_mutex);
-    return (result);
 }
 
 void    *routine(void *arg)

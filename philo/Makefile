@@ -5,6 +5,10 @@ NAME = philo
 SRCS = philo.c\
 	   routine.c\
 	   initialization.c\
+	   utils.c\
+	   checks.c\
+	   forks_management.c\
+	   threads.c\
 
 OBJS_DIR = OBJS
 OBJS = $(addprefix $(OBJS_DIR)/, $(SRCS:.c=.o))

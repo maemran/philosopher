@@ -6,49 +6,11 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:51:00 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 14:40:09 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/28 15:03:18 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-int args_check(char *str)
-{
-    int length;
-
-    length = 0;
-    while (str[length])
-    {
-        if (str[0] == '+' && str[1] != '\0')
-        {
-            length++;
-            continue;
-        }
-        if (!(str[length] >= '0' && str[length] <= '9'))
-            return(-1);
-        length++;
-    }
-    return (0);
-}
-
-int ft_atoi(char *str)
-{
-    int length;
-    int res;
-    
-    length = 0;
-    res = 0;
-    if (args_check(str) == -1)
-        return(-1);
-    if (str[0] == '+')
-        length = 1;
-    while (str[length])
-    {
-        res = (res * 10) + (str[length] - '0');
-		length++;
-    }
-    return (res);
-}
 
 int forks_init(t_data *data)
 {
@@ -68,15 +30,6 @@ int forks_init(t_data *data)
         i++;
     }
     return(SUCCESS);
-}
-
-int    destroy_mutex(t_data *data)
-{
-    pthread_mutex_destroy(&data->meal_mutex);
-    pthread_mutex_destroy(&data->finish_mutex);
-    pthread_mutex_destroy(&data->std_out);
-    pthread_mutex_destroy(&data->death);
-    return (FAILURE);
 }
 
 int init_mutexes(t_data *data)
