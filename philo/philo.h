@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 15:07:34 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/27 20:49:31 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/28 12:24:55 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,15 +42,16 @@ typedef struct s_data
     long start_time;
     int num_of_eat;
     int is_dead;
-    int they_all_ate;
+    int all_ate_enough;
+    int philos_finished_meals;
     pthread_t *threads;
     pthread_t monitor_thread;
     pthread_t eating_monitor;
     pthread_mutex_t *forks;
     pthread_mutex_t std_out;
     pthread_mutex_t death;
-    pthread_mutex_t eat_flag_mutex;
-    pthread_mutex_t eating_num_mutex;
+    pthread_mutex_t meal_mutex;
+    pthread_mutex_t finish_mutex;
     pthread_mutex_t last_meal_mutex;
 }   t_data;
 
@@ -59,7 +60,7 @@ typedef struct s_philos
     int id;
     int left_fork;
     int right_fork;
-    int  eating_num;
+    int  meals_num;
     long last_meal;
     t_data  *data;
 }   t_philos;
@@ -74,7 +75,6 @@ t_philos    *philos_init(t_data  *data);
 int    data_init(t_data *data, char **argv, int argc);
 int precise_sleep(t_philos *philo, t_data *data, long ms);
 int is_dead_flag_check(t_data *data);
-int     meals_num_check(t_philos *philo, t_data *data);
-int is_stop_eating(t_philos *philo);
+int    is_all_ate_enough(t_data *data);
 
 #endif 

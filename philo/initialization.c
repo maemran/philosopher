@@ -6,7 +6,7 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:51:00 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/27 19:54:58 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/28 14:40:09 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,13 +60,53 @@ int forks_init(t_data *data)
         return (FAILURE);
     while(i < data->philos_num)
     {
-        pthread_mutex_init(&data->forks[i], NULL);
+        if (pthread_mutex_init(&data->forks[i], NULL) != 0)
+        {
+            free(data->forks);
+            return (FAILURE);
+        }
         i++;
     }
     return(SUCCESS);
 }
 
-int    data_init(t_data *data, char **argv, int argc)
+int    destroy_mutex(t_data *data)
+{
+    pthread_mutex_destroy(&data->meal_mutex);
+    pthread_mutex_destroy(&data->finish_mutex);
+    pthread_mutex_destroy(&data->std_out);
+    pthread_mutex_destroy(&data->death);
+    return (FAILURE);
+}
+
+int init_mutexes(t_data *data)
+{
+    if (pthread_mutex_init(&data->meal_mutex, NULL) != 0)
+        return (FAILURE);
+    if (pthread_mutex_init(&data->finish_mutex, NULL) != 0)
+    {
+        pthread_mutex_destroy(&data->meal_mutex);
+        return (FAILURE);
+    }
+    if (pthread_mutex_init(&data->std_out, NULL) != 0)
+    {
+        pthread_mutex_destroy(&data->meal_mutex);
+        pthread_mutex_destroy(&data->finish_mutex);
+        return (FAILURE);
+    }
+    if (pthread_mutex_init(&data->death, NULL) != 0)
+    {
+        pthread_mutex_destroy(&data->meal_mutex);
+        pthread_mutex_destroy(&data->finish_mutex);
+        pthread_mutex_destroy(&data->std_out);
+        return (FAILURE);
+    }
+    if (pthread_mutex_init(&data->last_meal_mutex, NULL) != 0)
+        return (destroy_mutex(data));
+    return (SUCCESS);
+}
+
+void    init_args(t_data *data, char **argv, int argc)
 {
     data->philos_num = ft_atoi(argv[1]);
     data->time_to_die = ft_atoi(argv[2]);
@@ -76,22 +116,28 @@ int    data_init(t_data *data, char **argv, int argc)
         data->num_of_eat = ft_atoi(argv[5]);
     else
         data->num_of_eat = -2;
+}
+
+int    data_init(t_data *data, char **argv, int argc)
+{
+    init_args(data, argv, argc);
     if (data->philos_num == -1 || data->time_to_die == -1
         || data->time_to_eat == -1 || data->time_to_sleep == -1
         || data->num_of_eat == -1)
     {
-        printf("\033[31mIts a non numric value.\n\033[0m");
+        printf("\033[31mIts a non numrec value.\n\033[0m");
         return(FAILURE);
     }
     data->is_dead = 1;
-    data->they_all_ate = 1;
-    if (forks_init(data))
+    data->philos_finished_meals = 0;
+    data->all_ate_enough = 0;
+    if (init_mutexes(data))
         return (FAILURE);
-    pthread_mutex_init(&data->std_out, NULL);
-    pthread_mutex_init(&data->death, NULL);
-    pthread_mutex_init(&data->last_meal_mutex, NULL);
-    pthread_mutex_init(&data->eat_flag_mutex, NULL);
-    pthread_mutex_init(&data->eating_num_mutex, NULL);
+    if (forks_init(data))
+    {
+        pthread_mutex_destroy(&data->last_meal_mutex);
+        return (destroy_mutex(data));
+    }
     return(SUCCESS);
 }
 
@@ -108,7 +154,7 @@ t_philos    *philos_init(t_data  *data)
     {
         philos[i].id = i + 1;
         philos[i].left_fork = i;
-        philos[i].eating_num = 0;
+        philos[i].meals_num = 0;
         philos[i].right_fork = (i + 1) % data->philos_num;
         i++;
     }
