@@ -6,11 +6,11 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:51:00 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 20:35:00 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:11:38 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../include/philo.h"
 
 int	forks_init(t_data *data)
 {

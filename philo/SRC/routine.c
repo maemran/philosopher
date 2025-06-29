@@ -6,11 +6,11 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/25 20:45:55 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 15:38:32 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:11:46 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../include/philo.h"
 
 int	eating_process(t_philos *philo, t_data *data)
 {

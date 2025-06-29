@@ -6,11 +6,11 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 14:55:17 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 20:39:56 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:11:55 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../include/philo.h"
 
 long	current_time(void)
 {

@@ -6,11 +6,11 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 15:14:14 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 15:41:36 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:11:50 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../include/philo.h"
 
 void	print_death(t_philos *philo, int i)
 {

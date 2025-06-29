@@ -10,15 +10,17 @@ SRCS = philo.c\
 	   forks_management.c\
 	   threads.c\
 
+SRC_DIR = ./SRC
+
 OBJS_DIR = OBJS
 OBJS = $(addprefix $(OBJS_DIR)/, $(SRCS:.c=.o))
 
 all: $(NAME)
 
-$(NAME): $(OBJS)
+$(NAME): $(OBJS) ./include/philo.h
 	$(CC) $(OBJS) $(CFLAGS) -o $(NAME)
 
-$(OBJS_DIR)/%.o: %.c | $(OBJS_DIR)
+$(OBJS_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJS_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJS_DIR):

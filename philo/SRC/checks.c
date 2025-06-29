@@ -6,11 +6,11 @@
 /*   By: maemran < maemran@student.42amman.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 15:06:14 by maemran           #+#    #+#             */
-/*   Updated: 2025/06/28 15:08:23 by maemran          ###   ########.fr       */
+/*   Updated: 2025/06/29 18:11:24 by maemran          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "philo.h"
+#include "../include/philo.h"
 
 int	is_dead_flag_check(t_data *data)
 {
